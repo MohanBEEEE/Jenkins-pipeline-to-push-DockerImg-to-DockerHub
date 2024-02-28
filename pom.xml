@@ -51,6 +51,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
+		<finalName>java-for-devops</finalName>
 	</build>
 
 </project>
