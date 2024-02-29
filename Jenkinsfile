@@ -1,27 +1,36 @@
-java {
-	def app
-	stages{
-		stage('Clone repository'){
-			checkout scm
-		}
-		
-		stage('Build Image'){
-		app = docker.build("mohanvenkatesh1998/java-for-devops")
-		}
-
-		stage('Test Image'){
-			app.inside {
-				sh 'echo "Test Passed"'
-			}
-		}
-
-		stage('Push Image'){
-			docker.withRegistry('https://registry.hub.docker.com', 'git'){
-				app.push("${env.BUILD_NUMBER}") 
-				app.push("1.0.2")
-			}
-		}
-	
-	
-	}
+pipeline{
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('DockerHubCredentials')
+    }
+    agent any
+    tools {
+        maven 'Maven_Home'
+    }
+    stages{
+        stage('Build Maven'){
+            steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/MohanBEEEE/Jenkins-pipeline-to-push-DockerImg-to-DockerHub.git']])
+                sh 'mvn clean install'
+            }
+        }
+        stage('Build Docker Image'){
+            steps{
+                script{
+                    sh 'docker build -t mohanvenkatesh1998/java-for-devops-jenkins .'
+                }
+            }
+        }
+        stage('Push to DockerHub'){
+            steps{
+                script {
+                    docker.withRegistry('https://registry.hub.docker.com', 'Dockerhubmailid'){
+                        echo 'started pushing to DH'
+                        docker.image("mohanvenkatesh1998/java-for-devops-jenkins").push()
+                        //docker.image("mohanvenkatesh1998/java-for-devops-jenkins:1.0.2").push("latest")
+                        echo 'started pushing pushed'
+                    }
+                }
+            }
+        }
+    }
 }
